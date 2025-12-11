@@ -1,0 +1,95 @@
+═══════════════════════════════════════════════════════════════
+  GOOGLE OAUTH SETUP - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════
+
+YOUR SUPABASE CALLBACK URL:
+https://wdwryfugcsxjviovxjnt.supabase.co/auth/v1/callback
+
+═══════════════════════════════════════════════════════════════
+STEP 1: GOOGLE CLOUD CONSOLE
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://console.cloud.google.com/
+
+2. Create/Select Project:
+   - Click project dropdown → New Project
+   - Name: "Jifunze AI"
+   - Create
+
+3. OAuth Consent Screen (REQUIRED FIRST):
+   - APIs & Services → OAuth consent screen
+   - User Type: External
+   - App name: Jifunze AI
+   - Support email: [your email]
+   - Developer email: [your email]
+   - Scopes: email, profile, openid
+   - Test users: Add your email
+   - Save all steps
+
+4. Create OAuth Client:
+   - APIs & Services → Credentials
+   - Create Credentials → OAuth client ID
+   - Type: Web application
+   - Name: Jifunze AI Web
+   
+   AUTHORIZED REDIRECT URIS (add these):
+   ✓ https://wdwryfugcsxjviovxjnt.supabase.co/auth/v1/callback
+   ✓ http://localhost:3000/auth/callback
+   ✓ http://localhost:3001/auth/callback
+   
+   - Create
+   - COPY: Client ID (long string)
+   - COPY: Client Secret (GOCSPX-...)
+
+═══════════════════════════════════════════════════════════════
+STEP 2: SUPABASE DASHBOARD
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://supabase.com/dashboard
+   Select your project
+
+2. Authentication → Providers → Google
+
+3. Enable Google provider (toggle ON)
+
+4. Fill in:
+   - Client IDs (for OAuth): [paste Client ID]
+   - Client Secret (for OAuth): [paste Client Secret]
+
+5. Click SAVE
+
+═══════════════════════════════════════════════════════════════
+STEP 3: TEST
+═══════════════════════════════════════════════════════════════
+
+1. Start dev server: npm run dev
+
+2. Go to: http://localhost:3000/login
+
+3. Click "Continue with Google"
+
+4. Should redirect to Google sign-in
+
+5. After sign-in, redirects back to dashboard
+
+═══════════════════════════════════════════════════════════════
+COMMON ERRORS & FIXES
+═══════════════════════════════════════════════════════════════
+
+❌ "Redirect URI mismatch"
+   → Check redirect URI in Google Console matches exactly
+   → No trailing slashes
+
+❌ "OAuth consent screen not configured"
+   → Complete OAuth consent screen setup first
+   → Add yourself as test user
+
+❌ "Invalid client"
+   → Double-check Client ID and Secret
+   → Make sure using "Web application" type
+
+═══════════════════════════════════════════════════════════════
+
+
+
+

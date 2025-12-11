@@ -1,0 +1,1 @@
+{"version":3,"file":"county-bursaries.d.ts","sourceRoot":"","sources":["../../src/scrapers/county-bursaries.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAIH,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,UAAU,CAAA;AAE3C,qBAAa,oBAAoB;IAE/B,OAAO,CAAC,QAAQ,CAAC,cAAc,CAM9B;IAED;;OAEG;IACG,cAAc,CAAC,MAAM,EAAE,MAAM,GAAG,OAAO,CAAC,OAAO,CAAC,WAAW,CAAC,EAAE,CAAC;IAqFrE,OAAO,CAAC,aAAa;CAQtB"}

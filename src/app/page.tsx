@@ -1,65 +1,136 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BookOpen, MessageSquare, Brain, Globe, Smartphone, Zap } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-br from-[#ffcdb2] via-[#ffb4a2] to-[#e5989b] dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
+            Jifunze AI
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-3 font-medium leading-relaxed">
+            Your AI-Powered Learning Companion
           </p>
+          <p className="text-base md:text-lg text-gray-500 dark:text-gray-500 leading-7 max-w-2xl mx-auto">
+            Built for Kenya. Built for Africa. Built for You.
+          </p>
+          <div className="mt-8 flex gap-4 justify-center">
+            <Link href="/login">
+              <Button size="lg" className="text-lg px-8">
+                Get Started
+              </Button>
+            </Link>
+            <Link href="/chat">
+              <Button size="lg" variant="outline" className="text-lg px-8">
+                Try Demo
+              </Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-16">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <MessageSquare className="h-6 w-6 text-[#b5838d]" />
+                Bilingual Tutor
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Learn in Kiswahili or English. Our AI understands both languages and can code-switch naturally.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <BookOpen className="h-6 w-6 text-[#e5989b]" />
+                Kenyan Curriculum
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Aligned with 8-4-4 and CBC curricula. Get help with KCPE, KCSE, and all subjects.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Brain className="h-6 w-6 text-[#b5838d]" />
+                Culturally Relevant
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Examples from Kenyan life, culture, and geography make learning relatable and engaging.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
-      </main>
+
+        {/* More Features */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Smartphone className="h-6 w-6 text-[#ffb4a2]" />
+                Mobile-First
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Works on low-end phones with limited data. Optimized for Kenya's mobile-first internet.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Zap className="h-6 w-6 text-[#e5989b]" />
+                Instant Answers
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Get explanations, practice questions, and feedback instantly. No waiting, no delays.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Globe className="h-6 w-6 text-[#b5838d]" />
+                Made for Africa
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Built by Africans, for Africans. Addressing real challenges in Kenyan education.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* CTA Section */}
+        <div className="mt-16 text-center">
+          <Card className="bg-gradient-to-r from-[#e5989b] to-[#b5838d] text-white border-0">
+            <CardHeader>
+              <CardTitle className="text-3xl md:text-4xl mb-3 font-bold tracking-tight">
+                Ready to Start Learning?
+              </CardTitle>
+              <CardDescription className="text-white/90 text-base md:text-lg leading-7">
+                Join thousands of Kenyan students using AI to excel in their studies.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/login">
+                <Button size="lg" variant="secondary" className="text-lg px-8">
+                  Sign Up Free
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
