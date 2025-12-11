@@ -6,19 +6,16 @@ import { getUserWithOfflineFallback } from '@/lib/supabaseClient'
 import { isOnline } from '@/lib/offlineAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Send, Loader2, WifiOff } from 'lucide-react'
+import { Send, Loader2, WifiOff, ArrowLeft } from 'lucide-react'
 import { useChat } from '@/hooks/useChat'
-import { LanguageToggle } from '@/components/LanguageToggle'
-import { CurriculumSelector } from '@/components/CurriculumSelector'
 import { ROUTES } from '@/constants'
+import Link from 'next/link'
 
 export default function ChatPage() {
   const [input, setInput] = useState('')
   const router = useRouter()
-  const { messages, loading, context, messagesEndRef, sendMessage, updateContext } = useChat()
+  const { messages, loading, messagesEndRef, sendMessage } = useChat()
 
   useEffect(() => {
     checkUser()
@@ -42,103 +39,119 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-br from-[#ffcdb2] via-[#ffb4a2] to-[#e5989b] dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto flex h-full max-w-4xl flex-col p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+    <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Header - Mobile Responsive */}
+      <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-2 sm:py-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="flex-shrink-0"
+          >
+            <Link href={ROUTES.DASHBOARD}>
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Link>
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white truncate">
               EduPath AI Tutor
             </h1>
-            <div className="flex items-center gap-2">
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium">
-                Ask me anything about your studies!
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+              Ask me anything about your studies!
+            </p>
+          </div>
+          {!isOnline() && (
+            <Badge variant="outline" className="text-xs flex-shrink-0">
+              <WifiOff className="h-3 w-3 mr-1" />
+              Offline
+            </Badge>
+          )}
+        </div>
+      </header>
+
+      {/* Messages Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-3 sm:space-y-4">
+        {messages.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-md px-4">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-2">
+                👋 Welcome! I'm here to help with your studies.
               </p>
-              {!isOnline() && (
-                <Badge variant="outline" className="text-xs">
-                  <WifiOff className="h-3 w-3 mr-1" />
-                  Offline
-                </Badge>
-              )}
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                Ask me questions in English or Kiswahili about any subject, and I'll provide clear, culturally relevant explanations.
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <CurriculumSelector
-              curriculum={context.curriculum || 'CBC'}
-              onCurriculumChange={(curriculum) => updateContext({ curriculum })}
-            />
-            <LanguageToggle 
-              language={context.language || 'en'}
-              onLanguageChange={(lang) => updateContext({ language: lang })}
-            />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-          {messages.length === 0 && (
-            <Card className="p-6 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
-                Start by asking a question in English or Kiswahili.
-              </p>
-            </Card>
-          )}
-          
-          {messages.map((message) => (
+        )}
+        
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex gap-2 sm:gap-3 ${
+              message.role === 'user' ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            {message.role === 'assistant' && (
+              <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#e5989b] to-[#b5838d] flex items-center justify-center">
+                <span className="text-white text-xs sm:text-sm font-semibold">AI</span>
+              </div>
+            )}
+            
             <div
-              key={message.id}
-              className={`flex gap-3 ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
+              className={`max-w-[85%] sm:max-w-[75%] md:max-w-[70%] rounded-lg px-3 sm:px-4 py-2 sm:py-3 ${
+                message.role === 'user'
+                  ? 'bg-gradient-to-r from-[#e5989b] to-[#b5838d] text-white'
+                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white'
               }`}
             >
-              {message.role === 'assistant' && (
-                <Avatar>
-                  <AvatarFallback>AI</AvatarFallback>
-                </Avatar>
-              )}
-              <Card
-                className={`max-w-[80%] p-4 ${
-                  message.role === 'user'
-                    ? 'bg-[#b5838d] text-white'
-                    : 'bg-white dark:bg-gray-800'
-                }`}
-              >
-                <p className="whitespace-pre-wrap">{message.content}</p>
-              </Card>
-              {message.role === 'user' && (
-                <Avatar>
-                  <AvatarFallback>You</AvatarFallback>
-                </Avatar>
-              )}
+              <p className="text-sm sm:text-base whitespace-pre-wrap break-words leading-relaxed">
+                {message.content}
+              </p>
             </div>
-          ))}
-          
-          {loading && (
-            <div className="flex gap-3 justify-start">
-              <Avatar>
-                <AvatarFallback>AI</AvatarFallback>
-              </Avatar>
-              <Card className="p-4 bg-white dark:bg-gray-800">
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </Card>
+            
+            {message.role === 'user' && (
+              <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                <span className="text-gray-700 dark:text-gray-200 text-xs sm:text-sm font-semibold">You</span>
+              </div>
+            )}
+          </div>
+        ))}
+        
+        {loading && (
+          <div className="flex gap-2 sm:gap-3 justify-start">
+            <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#e5989b] to-[#b5838d] flex items-center justify-center">
+              <span className="text-white text-xs sm:text-sm font-semibold">AI</span>
             </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 sm:py-3">
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-[#e5989b]" />
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
 
-        <form onSubmit={handleSend} className="flex gap-2">
+      {/* Input Area - Sticky Bottom */}
+      <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-3 sm:py-4">
+        <form onSubmit={handleSend} className="flex gap-2 sm:gap-3">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question in English or Kiswahili..."
             disabled={loading}
-            className="flex-1"
+            className="flex-1 text-sm sm:text-base h-10 sm:h-11"
           />
-          <Button type="submit" disabled={loading || !input.trim()}>
-            <Send className="h-4 w-4" />
+          <Button 
+            type="submit" 
+            disabled={loading || !input.trim()}
+            size="default"
+            className="h-10 sm:h-11 w-10 sm:w-11 p-0 flex-shrink-0 bg-gradient-to-r from-[#e5989b] to-[#b5838d] hover:from-[#d4888b] hover:to-[#a5737d]"
+          >
+            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </form>
       </div>
     </div>
   )
 }
-

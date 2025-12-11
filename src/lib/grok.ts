@@ -37,7 +37,7 @@ Student Question: ${userMessage}
 Provide a helpful, culturally relevant response in ${language}:`
 
     const { text } = await generateText({
-      model: groqClient('llama-3.1-70b-versatile'), // Groq's fast model
+      model: groqClient('llama-3.3-70b-versatile'), // Updated to supported model
       prompt: enhancedPrompt,
       temperature: 0.7,
       maxTokens: 1000,

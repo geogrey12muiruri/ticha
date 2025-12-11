@@ -28,7 +28,7 @@ export const AUTH_CONFIG = {
 } as const
 
 export const AI_CONFIG = {
-  DEFAULT_MODEL: 'llama-3.1-70b-versatile',
+  DEFAULT_MODEL: 'llama-3.3-70b-versatile', // Updated from deprecated llama-3.1-70b-versatile
   DEFAULT_TEMPERATURE: 0.7,
   MAX_TOKENS: 1000,
   CACHE_SIZE: 100,

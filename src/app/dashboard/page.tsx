@@ -13,7 +13,6 @@ import { isOnline } from '@/lib/offlineAuth'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  BookOpen, 
   Search, 
   FileText, 
   Award, 
@@ -33,7 +32,12 @@ import {
   Laptop,
   Users,
   Briefcase,
-  UserCircle
+  UserCircle,
+  Filter,
+  ExternalLink,
+  MapPin,
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
@@ -551,24 +555,17 @@ export default function DashboardPage() {
                           </div>
                         )}
                       </div>
-                      {scholarship.applicationLink && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-xs"
-                          asChild
-                        >
-                          <a
-                            href={scholarship.applicationLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2"
-                          >
-                            View Details
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        </Button>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs"
+                        asChild
+                      >
+                        <Link href={`/scholarships/${scholarship.id}`}>
+                          View Details
+                          <ArrowRight className="h-3 w-3 ml-1" />
+                        </Link>
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -760,9 +757,32 @@ export default function DashboardPage() {
                               View
                             </Button>
                           </Link>
-                          <Button size="sm" className="bg-gradient-to-r from-[#e5989b] to-[#b5838d] hover:from-[#d4888b] hover:to-[#a5737d] flex-1 sm:flex-none w-full sm:w-auto h-8 sm:h-9 text-xs sm:text-sm">
-                            Apply
-                          </Button>
+                          {match.scholarship.applicationLink ? (
+                            <Button 
+                              size="sm" 
+                              className="bg-gradient-to-r from-[#e5989b] to-[#b5838d] hover:from-[#d4888b] hover:to-[#a5737d] flex-1 sm:flex-none w-full sm:w-auto h-8 sm:h-9 text-xs sm:text-sm"
+                              asChild
+                            >
+                              <a
+                                href={match.scholarship.applicationLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Apply
+                                <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              className="bg-gradient-to-r from-[#e5989b] to-[#b5838d] hover:from-[#d4888b] hover:to-[#a5737d] flex-1 sm:flex-none w-full sm:w-auto h-8 sm:h-9 text-xs sm:text-sm"
+                              asChild
+                            >
+                              <Link href={`/scholarships/${match.scholarship.id}`}>
+                                Apply
+                              </Link>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
