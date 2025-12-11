@@ -100,6 +100,14 @@ CREATE POLICY "Authenticated users can create scholarships"
   TO authenticated
   WITH CHECK (true);
 
+-- Allow service role to insert (for seeding/admin operations)
+-- This policy allows server-side operations to bypass RLS
+CREATE POLICY "Service role can insert scholarships"
+  ON scholarships
+  FOR INSERT
+  TO service_role
+  WITH CHECK (true);
+
 -- Allow providers to update their own scholarships
 CREATE POLICY "Providers can update own scholarships"
   ON scholarships

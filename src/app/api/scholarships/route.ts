@@ -140,7 +140,33 @@ export async function GET(request: NextRequest) {
         })
       } catch (scraperError: any) {
         console.error('Error fetching from scrapers:', scraperError)
+        console.warn('⚠️ Scrapers failed, will try database or mock data')
         // Fall through to return database results (even if empty)
+      }
+    }
+    
+    // If database is empty and scrapers failed, use mock data
+    if ((!data || data.length === 0) && !error) {
+      const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
+      
+      if (useMockData) {
+        console.log('📦 Using mock data (NEXT_PUBLIC_USE_MOCK_DATA=true)')
+        const { getMockScholarships } = await import('@/data/mock-scholarships')
+        const mockScholarships = getMockScholarships({
+          type: type || undefined,
+          county: county || undefined,
+          category: category || undefined,
+          limit,
+        })
+        
+        return NextResponse.json({
+          scholarships: mockScholarships.slice(offset, offset + limit),
+          count: mockScholarships.length,
+          limit,
+          offset,
+          source: 'mock',
+          message: 'Using mock data for prototyping',
+        })
       }
     }
 
@@ -165,12 +191,24 @@ export async function GET(request: NextRequest) {
             message: 'Live data (database not set up)',
           })
         } catch (scraperError) {
+          console.warn('⚠️ Database and scrapers failed, using mock data')
+          
+          // Fallback to mock data
+          const { getMockScholarships } = await import('@/data/mock-scholarships')
+          const mockScholarships = getMockScholarships({
+            type: type || undefined,
+            county: county || undefined,
+            category: category || undefined,
+            limit,
+          })
+          
           return NextResponse.json({
-            scholarships: [],
-            count: 0,
+            scholarships: mockScholarships,
+            count: mockScholarships.length,
             limit,
             offset,
-            message: 'Database table not set up and scrapers failed. Please run database migration.',
+            source: 'mock',
+            message: 'Using mock data (database and scrapers unavailable)',
           })
         }
       }

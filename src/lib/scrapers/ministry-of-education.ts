@@ -15,26 +15,66 @@ interface ScrapeOptions {
 
 export class KenyaScholarshipScraper {
   private readonly BASE_URL = 'https://www.education.go.ke'
-  private readonly SCHOLARSHIPS_URL = `${this.BASE_URL}/index.php/scholarships`
+  // Try multiple possible scholarship page URLs
+  private readonly POSSIBLE_SCHOLARSHIP_URLS = [
+    `${this.BASE_URL}/index.php/scholarships`, // Current URL
+    `${this.BASE_URL}/scholarships`, // Alternative path
+    `${this.BASE_URL}/education/scholarships`, // Alternative path
+    `${this.BASE_URL}/opportunities/scholarships`, // Alternative path
+  ]
+  private readonly SCHOLARSHIPS_URL = this.POSSIBLE_SCHOLARSHIP_URLS[0] // Default to first
 
   /**
    * Fetch scholarships from Ministry of Education website
    * Handles pagination if present
    */
   async fetchScholarships(options: ScrapeOptions = {}): Promise<Partial<Scholarship>[]> {
+    // Try each possible URL until one works
+    let workingUrl: string | null = null
+    let lastError: any = null
+
+    for (const url of this.POSSIBLE_SCHOLARSHIP_URLS) {
+      try {
+        console.log(`Trying URL: ${url}`)
+        const testResponse = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+          timeout: 8000, // Increased from 5s to 8s for slow websites
+          validateStatus: (status) => status < 500,
+          httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+        })
+
+        if (testResponse.status === 200) {
+          workingUrl = url
+          console.log(`✅ Found working URL: ${url}`)
+          break
+        }
+      } catch (error: any) {
+        lastError = error
+        console.log(`❌ URL failed: ${url} - ${error.message}`)
+        continue
+      }
+    }
+
+    if (!workingUrl) {
+      console.error('❌ All Ministry scholarship URLs failed. Last error:', lastError?.message)
+      throw new Error(`Cannot access Ministry of Education scholarships. Tried: ${this.POSSIBLE_SCHOLARSHIP_URLS.join(', ')}`)
+    }
+
     try {
-      console.log(`Fetching scholarships from ${this.SCHOLARSHIPS_URL}`)
+      console.log(`Fetching scholarships from ${workingUrl}`)
       
       const allScholarships: Partial<Scholarship>[] = []
       let currentPage = 1
-      const maxPages = 10 // Safety limit
+      const maxPages = 5 // Reduced from 10 for faster scraping
       let hasMorePages = true
 
       while (hasMorePages && currentPage <= maxPages) {
         // Check if pagination exists (common patterns: ?page=, /page/, etc.)
         const pageUrl = currentPage === 1 
-          ? this.SCHOLARSHIPS_URL 
-          : `${this.SCHOLARSHIPS_URL}?page=${currentPage}`
+          ? workingUrl 
+          : `${workingUrl}${workingUrl.includes('?') ? '&' : '?'}page=${currentPage}`
         
         console.log(`Fetching page ${currentPage}: ${pageUrl}`)
         
@@ -45,7 +85,7 @@ export class KenyaScholarshipScraper {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
           },
-          timeout: 30000,
+          timeout: 10000, // Reduced from 30s to 10s for faster failure
           validateStatus: (status) => status < 500,
           httpsAgent: new https.Agent({
             rejectUnauthorized: false,

@@ -52,10 +52,21 @@ export default function ScholarshipDetailPage() {
       setLoading(true)
       setError(null)
       
+      // Try API first
       const response = await fetch(`/api/scholarships/${params.id}`)
       
       if (!response.ok) {
         if (response.status === 404) {
+          // Try mock data as fallback
+          console.log('API returned 404, trying mock data...')
+          const { ScholarshipAPIService } = await import('@/services/scholarship-api.service')
+          const mockScholarship = await ScholarshipAPIService.fetchScholarshipById(params.id as string)
+          
+          if (mockScholarship) {
+            setScholarship(mockScholarship)
+            return
+          }
+          
           setError('Scholarship not found')
         } else {
           throw new Error('Failed to fetch scholarship')
@@ -64,9 +75,24 @@ export default function ScholarshipDetailPage() {
       }
 
       const data = await response.json()
-      setScholarship(data.scholarship)
+      setScholarship(data.scholarship || null)
     } catch (err: any) {
       console.error('Error fetching scholarship:', err)
+      
+      // Fallback to mock data
+      try {
+        const { ScholarshipAPIService } = await import('@/services/scholarship-api.service')
+        const mockScholarship = await ScholarshipAPIService.fetchScholarshipById(params.id as string)
+        
+        if (mockScholarship) {
+          console.log('Using mock data as fallback')
+          setScholarship(mockScholarship)
+          return
+        }
+      } catch (mockError) {
+        console.error('Mock data fallback also failed:', mockError)
+      }
+      
       setError(err.message || 'Failed to load scholarship')
     } finally {
       setLoading(false)

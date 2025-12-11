@@ -84,7 +84,7 @@ Provide a helpful, culturally relevant response in ${language}:`
 
       // Create AbortController for timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // Reduced to 5 second timeout for faster failure
 
       try {
         // Call Groq API directly with timeout

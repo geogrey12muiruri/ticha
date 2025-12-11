@@ -37,17 +37,25 @@ export class KenyaScholarshipScraperService {
   ): Promise<Partial<Scholarship>[]> {
     try {
       console.log('Fetching Ministry scholarships with options:', options)
-      const rawScholarships = await this.ministryScraper.fetchScholarships({
-        limit: options.limit || 50,
+      
+      // Add timeout wrapper to prevent hanging
+      const timeoutPromise = new Promise<Partial<Scholarship>[]>((_, reject) => 
+        setTimeout(() => reject(new Error('Ministry scraper timeout')), 12000) // 12s max
+      )
+      
+      const scrapePromise = this.ministryScraper.fetchScholarships({
+        limit: options.limit || 30, // Reduced default limit
         type: options.type || 'all',
       })
+
+      const rawScholarships = await Promise.race([scrapePromise, timeoutPromise])
 
       console.log(`Raw scholarships fetched: ${rawScholarships.length}`)
 
       if (rawScholarships.length === 0) {
         console.warn('No scholarships found. Website structure may have changed.')
-        // Return sample data for testing if nothing found
-        return this.getSampleScholarships()
+        // Don't return sample data - return empty array to allow fallback
+        return []
       }
 
       // Enhance with AI extraction for better structure (skip for now to avoid API costs)
@@ -80,10 +88,10 @@ export class KenyaScholarshipScraperService {
       */
 
       return enhanced
-    } catch (error) {
-      console.error('Error fetching Ministry scholarships:', error)
-      // Return sample data on error for testing
-      return this.getSampleScholarships()
+    } catch (error: any) {
+      console.error('Error fetching Ministry scholarships:', error.message || error)
+      // Return empty array on error to allow fallback to database
+      return []
     }
   }
 
@@ -201,24 +209,48 @@ export class KenyaScholarshipScraperService {
     type?: string
     minAmount?: number
     deadline?: string
+    limit?: number
   }): Promise<Partial<Scholarship>[]> {
     const results: Partial<Scholarship>[] = []
 
-    // Fetch from all sources
-    const [ministry, ngcdf, county] = await Promise.all([
+    // Fetch from all sources with Promise.allSettled to handle failures gracefully
+    // This ensures one failure doesn't break everything
+    const [ministryResult, ngcdfResult, countyResult] = await Promise.allSettled([
       this.fetchMinistryScholarships({
-        limit: 100,
+        limit: options.limit || 50, // Reduced default limit
         type: options.type as any,
+      }).catch(err => {
+        console.warn('Ministry scraper failed:', err.message)
+        return []
       }),
       options.county
-        ? this.fetchNGCDBBursaries({ county: options.county })
+        ? this.fetchNGCDBBursaries({ county: options.county }).catch(err => {
+            console.warn('NG-CDF scraper failed:', err.message)
+            return []
+          })
         : Promise.resolve([]),
       options.county
-        ? this.fetchCountyBursaries(options.county)
+        ? this.fetchCountyBursaries(options.county).catch(err => {
+            console.warn('County scraper failed:', err.message)
+            return []
+          })
         : Promise.resolve([]),
     ])
 
+    // Extract results from settled promises
+    const ministry = ministryResult.status === 'fulfilled' ? ministryResult.value : []
+    const ngcdf = ngcdfResult.status === 'fulfilled' ? ngcdfResult.value : []
+    const county = countyResult.status === 'fulfilled' ? countyResult.value : []
+
     results.push(...ministry, ...ngcdf, ...county)
+    
+    // Log results with status indicators
+    const total = ministry.length + ngcdf.length + county.length
+    if (total > 0) {
+      console.log(`✅ Scraped ${ministry.length} from Ministry, ${ngcdf.length} from NG-CDF, ${county.length} from County (Total: ${total})`)
+    } else {
+      console.log(`⚠️ No scholarships scraped - Ministry: ${ministry.length}, NG-CDF: ${ngcdf.length}, County: ${county.length}`)
+    }
 
     // Apply filters
     let filtered = results

@@ -49,10 +49,24 @@ export class AIOpportunityMatcherService {
     structuredMatches.sort((a, b) => b.matchScore - a.matchScore)
 
     // Get top matches and enhance with AI explanations
-    const topMatches = structuredMatches.slice(0, 10)
-    const aiEnhanced = await Promise.all(
+    // Only enhance top 3-5 matches to avoid timeout issues
+    const topMatches = structuredMatches.slice(0, 5) // Reduced from 10 to 5
+    
+    // Use Promise.allSettled to handle individual AI failures gracefully
+    const aiEnhancedResults = await Promise.allSettled(
       topMatches.map(match => this.enhanceMatchWithAI(profile, match))
     )
+
+    // Extract successful enhancements, fallback to original match if AI fails
+    const aiEnhanced = aiEnhancedResults.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value
+      } else {
+        console.warn(`AI enhancement failed for match ${index}:`, result.reason)
+        // Return original match without AI enhancement
+        return topMatches[index]
+      }
+    })
 
     return aiEnhanced
   }
@@ -100,10 +114,17 @@ Return JSON:
 }`
 
     try {
-      const response = await AIService.generateResponse(prompt, {
+      // Add timeout wrapper for individual AI calls
+      const aiPromise = AIService.generateResponse(prompt, {
         temperature: 0.4,
-        maxTokens: 500,
+        maxTokens: 300, // Reduced tokens for faster response
       })
+      
+      const timeoutPromise = new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error('AI enhancement timeout')), 6000) // 6s per match
+      )
+      
+      const response = await Promise.race([aiPromise, timeoutPromise])
 
       const jsonMatch = response.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
