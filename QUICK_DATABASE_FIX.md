@@ -1,16 +1,27 @@
 # Quick Database Fix
 
-## Problem
-The API is returning "Internal Server Error" because the `scholarships` table doesn't exist in Supabase.
+## Problems
+1. The API is returning "Internal Server Error" because the `scholarships` table doesn't exist in Supabase.
+2. RBAC service error: "Could not find the table 'public.user_profiles'" - the `user_profiles` table doesn't exist.
 
 ## Solution Options
 
-### Option 1: Run the Migration (Recommended)
+### Option 1: Run the Migrations (Recommended)
 
-1. Go to your Supabase project dashboard
-2. Navigate to **SQL Editor**
-3. Copy and paste the contents of `supabase/migrations/001_create_scholarships.sql`
-4. Click **Run** to execute the migration
+**You need to run TWO migrations:**
+
+1. **Migration 001 - Scholarships Table:**
+   - Go to your Supabase project dashboard
+   - Navigate to **SQL Editor**
+   - Copy and paste the contents of `supabase/migrations/001_create_scholarships.sql`
+   - Click **Run** to execute
+
+2. **Migration 002 - User Profiles Table:**
+   - Still in SQL Editor
+   - Copy and paste the contents of `supabase/migrations/002_create_user_profiles.sql`
+   - Click **Run** to execute
+
+**Both migrations are required!**
 
 ### Option 2: Use Mock Data (Temporary)
 
@@ -32,15 +43,25 @@ After running the migration, you can add sample scholarships through:
    - Click "SQL Editor" in the left sidebar
    - Click "New query"
 
-3. **Run Migration**
+3. **Run Migration 001 (Scholarships)**
    - Open `supabase/migrations/001_create_scholarships.sql`
    - Copy all SQL code
    - Paste into SQL Editor
    - Click "Run" (or press Cmd/Ctrl + Enter)
+   - Wait for success message
 
-4. **Verify**
+4. **Run Migration 002 (User Profiles)**
+   - Open `supabase/migrations/002_create_user_profiles.sql`
+   - Copy all SQL code
+   - Paste into SQL Editor (new query or same one)
+   - Click "Run"
+   - Wait for success message
+
+5. **Verify**
    - Go to "Table Editor"
-   - You should see `scholarships`, `user_profiles`, `forms`, and `audit_logs` tables
+   - You should see:
+     - ✅ `scholarships` table
+     - ✅ `user_profiles` table
 
 ## Testing
 

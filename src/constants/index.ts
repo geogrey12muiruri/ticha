@@ -4,8 +4,8 @@
  */
 
 export const APP_CONFIG = {
-  name: 'Jifunze AI',
-  description: 'AI-powered learning companion for Kenyan students',
+  name: 'EduPath',
+  description: 'Your gateway to education access through scholarships and educational resources',
   version: '1.0.0',
 } as const
 

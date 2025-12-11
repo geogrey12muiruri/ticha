@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jifunze AI - Your AI-Powered Learning Companion",
+  title: "EduPath - Your Gateway to Education Access",
   description: "AI-powered personal tutor for Kenyan students. Learn in Kiswahili or English with curriculum-aligned content.",
 };
 

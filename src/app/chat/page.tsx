@@ -47,7 +47,7 @@ export default function ChatPage() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-              Jifunze AI Tutor
+              EduPath AI Tutor
             </h1>
             <div className="flex items-center gap-2">
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium">

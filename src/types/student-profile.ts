@@ -45,6 +45,8 @@ export interface PersonalInfo {
   dateOfBirth?: string // YYYY-MM-DD
   gender?: Gender
   county: string
+  constituency?: string
+  subcounty?: string
   schoolName?: string
   schoolType?: SchoolType
   schoolContact?: {

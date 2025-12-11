@@ -84,14 +84,40 @@ export class AuthService {
 
   /**
    * Sign out current user
+   * Clears all user data including profile, session, and cache
    */
   static async signOut(): Promise<void> {
     try {
+      // Sign out from Supabase
       await supabase.auth.signOut()
     } catch (error) {
       console.error('Sign out error:', error)
     } finally {
+      // Clear offline session
       clearOfflineSession()
+      
+      // Clear all user-related data from localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          // Clear student profile
+          localStorage.removeItem('student_profile')
+          
+          // Clear any cached AI responses
+          localStorage.removeItem('ai_responses_cache')
+          
+          // Clear any other user-specific data
+          const keysToRemove: string[] = []
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            if (key && (key.startsWith('jifunze_') || key.startsWith('user_'))) {
+              keysToRemove.push(key)
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key))
+        } catch (error) {
+          console.error('Error clearing localStorage:', error)
+        }
+      }
     }
   }
 
@@ -167,6 +193,7 @@ export class AuthService {
     }
   }
 }
+
 
 
 

@@ -94,27 +94,41 @@ export class ScholarshipService {
       score += weights.location * 0.5
     }
 
-    // Academic match (30 points)
+    // Academic match (30 points) - Focus on access, not performance
+    // Grade level matching (primary factor)
     if (profile.grade) {
       const inGradeRange =
         (!eligibility.minGrade || profile.grade >= eligibility.minGrade) &&
         (!eligibility.maxGrade || profile.grade <= eligibility.maxGrade)
       
       if (inGradeRange) {
-        score += weights.academic * 0.5
-      }
-    }
-
-    if (eligibility.curriculum && profile.curriculum) {
-      if (eligibility.curriculum.includes(profile.curriculum)) {
-        score += weights.academic * 0.3
-      }
-    }
-
-    if (profile.kcpeScore && eligibility.minKCPE) {
-      if (profile.kcpeScore >= eligibility.minKCPE) {
+        score += weights.academic * 0.6 // Increased weight for grade level
+      } else {
+        // Don't exclude, just reduce score slightly
         score += weights.academic * 0.2
       }
+    } else {
+      // No grade specified - still give some points (inclusive approach)
+      score += weights.academic * 0.3
+    }
+
+    // Curriculum match
+    if (eligibility.curriculum && profile.curriculum) {
+      if (eligibility.curriculum.includes(profile.curriculum)) {
+        score += weights.academic * 0.4
+      }
+    } else if (!eligibility.curriculum) {
+      // No curriculum requirement - available to all
+      score += weights.academic * 0.2
+    }
+
+    // KCPE/KCSE scores are optional - don't penalize if missing
+    // Only add points if provided, but don't subtract if not
+    if (profile.kcpeScore && eligibility.minKCPE) {
+      if (profile.kcpeScore >= eligibility.minKCPE) {
+        score += weights.academic * 0.1 // Reduced weight
+      }
+      // Don't penalize if score is below - focus on access
     }
 
     if (profile.kcseGrade && eligibility.minKCSE) {
@@ -122,8 +136,9 @@ export class ScholarshipService {
       const profileIndex = gradeOrder.indexOf(profile.kcseGrade)
       const minIndex = gradeOrder.indexOf(eligibility.minKCSE)
       if (profileIndex >= minIndex) {
-        score += weights.academic * 0.2
+        score += weights.academic * 0.1 // Reduced weight
       }
+      // Don't penalize if grade is below - focus on access
     }
 
     // Career/Field match (20 points) - Replaces financial match

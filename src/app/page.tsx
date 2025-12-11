@@ -1,7 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { BookOpen, MessageSquare, Brain, Globe, Smartphone, Zap } from 'lucide-react'
+import { GraduationCap, Search, Shield, BookOpen, MapPin, Users } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -10,13 +12,14 @@ export default function Home() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
-            Jifunze AI
+            EduPath
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-3 font-medium leading-relaxed">
-            Your AI-Powered Learning Companion
+            Your Gateway to Education Access
           </p>
           <p className="text-base md:text-lg text-gray-500 dark:text-gray-500 leading-7 max-w-2xl mx-auto">
-            Built for Kenya. Built for Africa. Built for You.
+            Discover verified scholarships, bursaries, and educational opportunities across Kenya. 
+            Find the right path to your future.
           </p>
           <div className="mt-8 flex gap-4 justify-center">
             <Link href="/login">
@@ -24,9 +27,9 @@ export default function Home() {
                 Get Started
               </Button>
             </Link>
-            <Link href="/chat">
+            <Link href="/login">
               <Button size="lg" variant="outline" className="text-lg px-8">
-                Try Demo
+                Sign In
               </Button>
             </Link>
           </div>
@@ -37,11 +40,54 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <MessageSquare className="h-6 w-6 text-[#b5838d]" />
-                Bilingual Tutor
+                <Shield className="h-6 w-6 text-[#b5838d]" />
+                Verified Opportunities
               </CardTitle>
               <CardDescription className="text-sm leading-6">
-                Learn in Kiswahili or English. Our AI understands both languages and can code-switch naturally.
+                All opportunities are verified from official sources including Kenya Ministry of Education, 
+                NG-CDF, and County Governments.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Search className="h-6 w-6 text-[#e5989b]" />
+                Smart Matching
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Our AI-powered system matches you with opportunities based on your profile, 
+                location, and academic goals.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <GraduationCap className="h-6 w-6 text-[#b5838d]" />
+                Education Access
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Breaking down barriers to education. Find scholarships, bursaries, bootcamps, 
+                and learning opportunities that fit your path.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* More Features */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <MapPin className="h-6 w-6 text-[#ffb4a2]" />
+                Location-Based
+              </CardTitle>
+              <CardDescription className="text-sm leading-6">
+                Find opportunities specific to your county and constituency. 
+                Local scholarships, bursaries, and programs.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -50,10 +96,11 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg font-semibold">
                 <BookOpen className="h-6 w-6 text-[#e5989b]" />
-                Kenyan Curriculum
+                Comprehensive Database
               </CardTitle>
               <CardDescription className="text-sm leading-6">
-                Aligned with 8-4-4 and CBC curricula. Get help with KCPE, KCSE, and all subjects.
+                Access to scholarships, bursaries, grants, bootcamps, learning opportunities, 
+                mentorships, and internships all in one place.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -61,50 +108,12 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <Brain className="h-6 w-6 text-[#b5838d]" />
-                Culturally Relevant
+                <Users className="h-6 w-6 text-[#b5838d]" />
+                Made for Kenya
               </CardTitle>
               <CardDescription className="text-sm leading-6">
-                Examples from Kenyan life, culture, and geography make learning relatable and engaging.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* More Features */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <Smartphone className="h-6 w-6 text-[#ffb4a2]" />
-                Mobile-First
-              </CardTitle>
-              <CardDescription className="text-sm leading-6">
-                Works on low-end phones with limited data. Optimized for Kenya's mobile-first internet.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <Zap className="h-6 w-6 text-[#e5989b]" />
-                Instant Answers
-              </CardTitle>
-              <CardDescription className="text-sm leading-6">
-                Get explanations, practice questions, and feedback instantly. No waiting, no delays.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <Globe className="h-6 w-6 text-[#b5838d]" />
-                Made for Africa
-              </CardTitle>
-              <CardDescription className="text-sm leading-6">
-                Built by Africans, for Africans. Addressing real challenges in Kenyan education.
+                Built by Kenyans, for Kenyans. Addressing real challenges in education access 
+                across all 47 counties.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -115,16 +124,17 @@ export default function Home() {
           <Card className="bg-gradient-to-r from-[#e5989b] to-[#b5838d] text-white border-0">
             <CardHeader>
               <CardTitle className="text-3xl md:text-4xl mb-3 font-bold tracking-tight">
-                Ready to Start Learning?
+                Ready to Find Your Path?
               </CardTitle>
               <CardDescription className="text-white/90 text-base md:text-lg leading-7">
-                Join thousands of Kenyan students using AI to excel in their studies.
+                Create a free profile to get personalized scholarship matches and access 
+                to exclusive opportunities.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href="/login">
                 <Button size="lg" variant="secondary" className="text-lg px-8">
-                  Sign Up Free
+                  Get Started Free
                 </Button>
               </Link>
             </CardContent>

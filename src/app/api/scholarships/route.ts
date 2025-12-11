@@ -13,6 +13,11 @@ export const revalidate = 60 // Revalidate every 60 seconds
 /**
  * GET /api/scholarships
  * Fetch all active, verified scholarships
+ * 
+ * Smart fetching:
+ * 1. First tries database
+ * 2. If empty/stale, fetches from live scrapers
+ * 3. Auto-syncs scraped data to database
  */
 export async function GET(request: NextRequest) {
   try {
@@ -26,6 +31,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
     const search = searchParams.get('search')
+    const useLiveData = searchParams.get('live') === 'true' // Force live scraping
 
     // Build query
     let query = supabase
@@ -61,19 +67,112 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await query
 
+    // Check if database is empty or stale
+    const dbEmpty = !data || data.length === 0
+    const dbStale = data && data.length > 0 && useLiveData
+
+    // If database is empty or stale, fetch from live scrapers
+    if (dbEmpty || dbStale) {
+      console.log('Database empty or stale, fetching from live scrapers...')
+      
+      try {
+        const { KenyaScholarshipScraperService } = await import('@/services/kenya-scholarship-scraper.service')
+        const scraper = new KenyaScholarshipScraperService()
+        
+        // Fetch from all sources
+        const liveScholarships = await scraper.searchAllSources({
+          county: county || undefined,
+          type: type as any,
+        })
+
+        // Sync to database (async, don't wait)
+        scraper.syncToDatabase().catch(err => {
+          console.error('Error syncing to database:', err)
+        })
+
+        // Filter and transform live data
+        let filtered = liveScholarships
+        
+        if (county) {
+          filtered = filtered.filter(s => 
+            s.eligibility?.counties?.includes(county) || 
+            !s.eligibility?.counties // Include if no county restriction
+          )
+        }
+
+        if (type) {
+          filtered = filtered.filter(s => s.type === type)
+        }
+
+        // Apply pagination
+        const paginated = filtered.slice(offset, offset + limit)
+
+        // Transform to Scholarship type
+        const scholarships: Scholarship[] = paginated.map((record: any) => ({
+          id: record.id || `live-${Date.now()}-${Math.random()}`,
+          name: record.name,
+          description: record.description,
+          provider: record.provider,
+          type: record.type as Scholarship['type'],
+          category: record.category,
+          eligibility: record.eligibility || {},
+          amount: record.amount,
+          coverage: record.coverage || [],
+          duration: record.duration,
+          bootcampDetails: record.bootcamp_details,
+          learningDetails: record.learning_details,
+          applicationDeadline: record.applicationDeadline,
+          applicationLink: record.applicationLink,
+          contactInfo: record.contactInfo || {},
+          requirements: record.requirements || [],
+          documents: record.documents || [],
+          notes: record.notes,
+          priority: record.priority || 0,
+        }))
+
+        return NextResponse.json({
+          scholarships,
+          count: filtered.length,
+          limit,
+          offset,
+          source: 'live_scrapers',
+          message: 'Live data from Kenya government portals',
+        })
+      } catch (scraperError: any) {
+        console.error('Error fetching from scrapers:', scraperError)
+        // Fall through to return database results (even if empty)
+      }
+    }
+
     if (error) {
       console.error('Error fetching scholarships:', error)
       
-      // If table doesn't exist, return empty array instead of error
+      // If table doesn't exist, try live scrapers
       if (error.message?.includes('relation') || error.message?.includes('table') || error.message?.includes('does not exist')) {
-        console.warn('Scholarships table not found. Returning empty array. Please run database migration.')
-        return NextResponse.json({
-          scholarships: [],
-          count: 0,
-          limit,
-          offset,
-          message: 'Database table not set up. Please run migration.',
-        })
+        console.warn('Scholarships table not found. Trying live scrapers...')
+        
+        try {
+          const { KenyaScholarshipScraperService } = await import('@/services/kenya-scholarship-scraper.service')
+          const scraper = new KenyaScholarshipScraperService()
+          const liveScholarships = await scraper.searchAllSources({ county: county || undefined })
+          
+          return NextResponse.json({
+            scholarships: liveScholarships.slice(0, limit),
+            count: liveScholarships.length,
+            limit,
+            offset,
+            source: 'live_scrapers',
+            message: 'Live data (database not set up)',
+          })
+        } catch (scraperError) {
+          return NextResponse.json({
+            scholarships: [],
+            count: 0,
+            limit,
+            offset,
+            message: 'Database table not set up and scrapers failed. Please run database migration.',
+          })
+        }
       }
       
       return NextResponse.json(
@@ -110,6 +209,7 @@ export async function GET(request: NextRequest) {
       count: scholarships.length,
       limit,
       offset,
+      source: 'database',
     })
   } catch (error: any) {
     console.error('Unexpected error:', error)

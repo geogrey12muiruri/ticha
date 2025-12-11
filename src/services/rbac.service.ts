@@ -27,10 +27,26 @@ export class RBACService {
         .from('user_profiles')
         .select('role')
         .eq('id', userId)
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
-      if (error || !data) {
-        // Default to student if no profile exists
+      // Handle PGRST116 error (0 rows) or other errors
+      if (error) {
+        // PGRST116 = "Cannot coerce the result to a single JSON object" (0 rows)
+        if (error.code === 'PGRST116' || error.message?.includes('0 rows') || error.message?.includes('JSON object')) {
+          // Profile doesn't exist - try to create it
+          console.log('User profile not found, creating default profile...')
+          const created = await this.createUserProfile(userId, 'student')
+          if (created) {
+            return 'student'
+          }
+        }
+        // Default to student if error or no profile exists
+        return 'student'
+      }
+
+      if (!data) {
+        // No data returned - try to create profile
+        const created = await this.createUserProfile(userId, 'student')
         return 'student'
       }
 
@@ -50,9 +66,40 @@ export class RBACService {
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
-      if (error || !data) {
+      // Handle PGRST116 error (0 rows) or other errors
+      if (error) {
+        // PGRST116 = "Cannot coerce the result to a single JSON object" (0 rows)
+        if (error.code === 'PGRST116' || error.message?.includes('0 rows') || error.message?.includes('JSON object')) {
+          // Profile doesn't exist - try to create it
+          console.log('User profile not found, creating default profile...')
+          const created = await this.createUserProfile(userId, 'student')
+          if (created) {
+            // Retry fetching the newly created profile
+            const { data: newData } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', userId)
+              .maybeSingle()
+            return newData as UserProfile | null
+          }
+        }
+        return null
+      }
+
+      if (!data) {
+        // No data returned - try to create profile
+        const created = await this.createUserProfile(userId, 'student')
+        if (created) {
+          // Retry fetching the newly created profile
+          const { data: newData } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle()
+          return newData as UserProfile | null
+        }
         return null
       }
 
@@ -297,13 +344,17 @@ export class RBACService {
   ): Promise<boolean> {
     try {
       if (resourceType === 'scholarship') {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('scholarships')
           .select('provider_id')
           .eq('id', resourceId)
-          .single()
+          .maybeSingle() // Use maybeSingle() to handle 0 rows gracefully
 
-        return data?.provider_id === userId
+        if (error || !data) {
+          return false
+        }
+
+        return data.provider_id === userId
       }
 
       // Add other resource types as needed

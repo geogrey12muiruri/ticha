@@ -39,11 +39,13 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { ROUTES, OPPORTUNITY_TYPE_LABELS } from '@/constants'
 import { useRBAC } from '@/hooks/useRBAC'
-import { ComprehensiveProfileWizard } from '@/components/features/profile/ComprehensiveProfileWizard'
-import { CareerAdvisorChat } from '@/components/features/ai/CareerAdvisorChat'
+import { MinimalProfileWizard } from '@/components/features/profile/MinimalProfileWizard'
+import type { StudentProfile } from '@/types/student-profile'
 import { ScholarshipAPIService } from '@/services/scholarship-api.service'
 import { DashboardLayout } from '@/components/shared/DashboardLayout'
-import type { ScholarshipProfile, ScholarshipMatch, OpportunityType } from '@/types/scholarship'
+import type { ScholarshipProfile, ScholarshipMatch, OpportunityType, Scholarship } from '@/types/scholarship'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getCountyNames } from '@/constants/locations'
 
 // Helper function to get icon for opportunity type
 const getOpportunityIcon = (type: OpportunityType) => {
@@ -86,6 +88,15 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<ScholarshipProfile | null>(null)
   const router = useRouter()
   const { role, isStudent } = useRBAC()
+  
+  // Scholarship search state
+  const [scholarships, setScholarships] = useState<Scholarship[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedType, setSelectedType] = useState<string>('all')
+  const [selectedCounty, setSelectedCounty] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     checkUser()
@@ -99,23 +110,75 @@ export default function DashboardPage() {
     }
     setUser(currentUser)
     
-    // Check if profile is complete
-    // TODO: Load from database
-    const hasProfile = false // Replace with actual check
-    if (!hasProfile) {
-      setShowProfileWizard(true)
+    // Check if profile exists in localStorage
+    if (typeof window !== 'undefined') {
+      const savedProfile = localStorage.getItem('student_profile')
+      if (savedProfile) {
+        try {
+          const parsedProfile = JSON.parse(savedProfile) as Partial<StudentProfile>
+          
+          // Validate required fields
+          const hasRequiredFields = 
+            parsedProfile.personal?.county &&
+            parsedProfile.personal?.firstName &&
+            parsedProfile.academicStage?.stage
+          
+          if (hasRequiredFields) {
+            // Map to legacy format for compatibility
+            const legacyProfile: ScholarshipProfile = {
+              county: parsedProfile.personal?.county,
+              constituency: parsedProfile.personal?.constituency,
+              currentSchool: parsedProfile.personal?.schoolName,
+              grade: parseInt(parsedProfile.academicStage?.currentClassOrLevel?.match(/\d+/)?.[0] || '0'),
+              curriculum: parsedProfile.academicStage?.stage === 'JuniorSecondary' || parsedProfile.academicStage?.stage === 'Primary' ? 'CBC' : '8-4-4',
+              subjects: parsedProfile.subjectsCompetencies?.subjectsTaken || [],
+              careerInterest: parsedProfile.careerGoals?.longTerm,
+              careerGoals: parsedProfile.careerGoals?.longTerm ? [parsedProfile.careerGoals.longTerm] : [],
+              currentSkills: parsedProfile.skillsAndCertifications?.map((s: any) => s.skill) || [],
+              skillsWanted: parsedProfile.skillsAndCertifications?.filter((s: any) => s.proficiency === 'Beginner').map((s: any) => s.skill) || [],
+              learningGoals: parsedProfile.careerGoals?.shortTerm ? [parsedProfile.careerGoals.shortTerm] : [],
+              preferredField: parsedProfile.subjectsCompetencies?.preferredStream,
+              projects: parsedProfile.projectsPortfolio || [],
+              extracurriculars: parsedProfile.extracurricularsAndAwards?.map((a: any) => a.type) || [],
+              achievements: parsedProfile.extracurricularsAndAwards?.map((a: any) => a.type) || [],
+              languages: parsedProfile.accessAndReadiness?.preferredLanguage ? [parsedProfile.accessAndReadiness.preferredLanguage] : [],
+            }
+            
+            setProfile(legacyProfile)
+            setProfileComplete(true)
+            setShowProfileWizard(false)
+            
+            // Load matches with the loaded profile (use setTimeout to ensure state is set)
+            setTimeout(() => {
+              loadMatches(legacyProfile)
+            }, 100)
+          } else {
+            // Profile incomplete, show wizard
+            console.log('Profile missing required fields, showing wizard')
+            setShowProfileWizard(true)
+          }
+        } catch (error) {
+          console.error('Error loading profile from localStorage:', error)
+          // If parsing fails, show wizard
+          setShowProfileWizard(true)
+        }
+      } else {
+        // No profile found, show wizard
+        setShowProfileWizard(true)
+      }
     } else {
-      // Load matches
-      loadMatches()
+      // Server-side, show wizard
+      setShowProfileWizard(true)
     }
     
     setLoading(false)
   }
 
-  const loadMatches = async () => {
-    if (!profile) return
+  const loadMatches = async (profileToUse?: ScholarshipProfile) => {
+    const profileToMatch = profileToUse || profile
+    if (!profileToMatch) return
     try {
-      const results = await ScholarshipAPIService.matchScholarships(profile)
+      const results = await ScholarshipAPIService.matchScholarships(profileToMatch)
       setMatches(results.slice(0, 3)) // Top 3
     } catch (error) {
       console.error('Error loading matches:', error)
@@ -124,10 +187,85 @@ export default function DashboardPage() {
     }
   }
 
+  const fetchScholarships = async () => {
+    try {
+      setSearchLoading(true)
+      setSearchError(null)
+      
+      // Force live scraping by adding live=true
+      const params = new URLSearchParams({
+        limit: '50',
+        live: 'true', // Force live scraping
+      })
+      
+      if (selectedType !== 'all') {
+        params.append('type', selectedType)
+      }
+      
+      if (selectedCounty !== 'all') {
+        params.append('county', selectedCounty)
+      }
+      
+      if (searchQuery) {
+        params.append('search', searchQuery)
+      }
+
+      const response = await fetch(`/api/scholarships?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch scholarships')
+      }
+
+      const data = await response.json()
+      setScholarships(data.scholarships || [])
+    } catch (err: any) {
+      console.error('Error fetching scholarships:', err)
+      setSearchError(err.message || 'Failed to load scholarships. Please try again.')
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    fetchScholarships()
+  }
+
+  const formatDeadline = (deadline?: string | Date) => {
+    if (!deadline) return 'Not specified'
+    const date = new Date(deadline)
+    if (isNaN(date.getTime())) return 'Not specified'
+    return date.toLocaleDateString('en-KE', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    })
+  }
+
+  const isUpcoming = (deadline?: string | Date) => {
+    if (!deadline) return false
+    const date = new Date(deadline)
+    if (isNaN(date.getTime())) return false
+    return date > new Date()
+  }
+
+  const filteredScholarships = scholarships.filter(scholarship => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      return (
+        scholarship.name?.toLowerCase().includes(query) ||
+        scholarship.provider?.toLowerCase().includes(query) ||
+        scholarship.description?.toLowerCase().includes(query)
+      )
+    }
+    return true
+  })
+
   const handleProfileComplete = async (completedProfile: any) => {
     // Map to legacy format for compatibility
     const legacyProfile: ScholarshipProfile = {
       county: completedProfile.personal?.county,
+      constituency: completedProfile.personal?.constituency,
       currentSchool: completedProfile.personal?.schoolName,
       grade: parseInt(completedProfile.academicStage?.currentClassOrLevel?.match(/\d+/)?.[0] || '0'),
       curriculum: completedProfile.academicStage?.stage === 'JuniorSecondary' || completedProfile.academicStage?.stage === 'Primary' ? 'CBC' : '8-4-4',
@@ -144,14 +282,17 @@ export default function DashboardPage() {
       languages: completedProfile.accessAndReadiness?.preferredLanguage ? [completedProfile.accessAndReadiness.preferredLanguage] : [],
     }
     
+    // Save to localStorage FIRST (before state updates)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('student_profile', JSON.stringify(completedProfile))
+    }
+    
+    // Update state
     setProfile(legacyProfile)
     setShowProfileWizard(false)
     setProfileComplete(true)
     
-    // Save to localStorage
-    localStorage.setItem('student_profile', JSON.stringify(completedProfile))
-    
-    // Load matches
+    // Load matches (use the profile we just set)
     try {
       const results = await ScholarshipAPIService.matchScholarships(legacyProfile)
       setMatches(results.slice(0, 3))
@@ -178,7 +319,13 @@ export default function DashboardPage() {
 
   // Show profile wizard if profile incomplete
   if (showProfileWizard) {
-    return <ComprehensiveProfileWizard onComplete={handleProfileComplete} />
+    // Try to load existing profile data if available
+    const savedProfile = typeof window !== 'undefined' 
+      ? localStorage.getItem('student_profile')
+      : null
+    const initialData = savedProfile ? JSON.parse(savedProfile) : undefined
+    
+    return <MinimalProfileWizard onComplete={handleProfileComplete} initialData={initialData} />
   }
 
   const userName = user?.email?.split('@')[0] || 'Student'
@@ -223,16 +370,6 @@ export default function DashboardPage() {
               variant="ghost" 
               size="sm" 
               className="flex items-center gap-1.5 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
-              onClick={() => router.push(ROUTES.CHAT)}
-            >
-              <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline">AI Tutor</span>
-              <span className="xs:hidden">Tutor</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
               onClick={() => router.push('/profile')}
             >
               <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -240,6 +377,204 @@ export default function DashboardPage() {
               <span className="xs:hidden">Me</span>
             </Button>
           </div>
+        </section>
+
+        {/* Scholarship Search Section */}
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-3 sm:mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-semibold mb-0.5 sm:mb-1">Browse All Opportunities</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Search live scholarships from Kenya government portals
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
+          </div>
+
+          <form onSubmit={handleSearch} className="space-y-3 sm:space-y-4">
+            <div className="flex gap-2">
+              <Input
+                type="search"
+                placeholder="Search scholarships, providers, or keywords..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit" size="default" disabled={searchLoading}>
+                {searchLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Search
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {showFilters && (
+              <div className="grid md:grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t">
+                <div>
+                  <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block">Type</label>
+                  <select
+                    value={selectedType}
+                    onChange={(e) => {
+                      setSelectedType(e.target.value)
+                      fetchScholarships()
+                    }}
+                    className="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="scholarship">Scholarships</option>
+                    <option value="bursary">Bursaries</option>
+                    <option value="grant">Grants</option>
+                    <option value="bootcamp">Bootcamps</option>
+                    <option value="learning">Learning Opportunities</option>
+                    <option value="mentorship">Mentorships</option>
+                    <option value="internship">Internships</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block">County</label>
+                  <select
+                    value={selectedCounty}
+                    onChange={(e) => {
+                      setSelectedCounty(e.target.value)
+                      fetchScholarships()
+                    }}
+                    className="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm"
+                  >
+                    <option value="all">All Counties</option>
+                    {getCountyNames().map(county => (
+                      <option key={county} value={county}>{county}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </form>
+
+          {/* Search Results */}
+          {searchLoading ? (
+            <div className="flex items-center justify-center py-8 mt-4">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                Loading opportunities from Kenya government portals...
+              </span>
+            </div>
+          ) : searchError ? (
+            <Card className="border-red-200 dark:border-red-800 mt-4">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-5 w-5" />
+                  <div>
+                    <p className="font-medium text-sm">Error loading opportunities</p>
+                    <p className="text-xs text-red-500 dark:text-red-400">{searchError}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={fetchScholarships}
+                      className="mt-2"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredScholarships.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <Badge variant="secondary" className="text-xs">
+                  {filteredScholarships.length} {filteredScholarships.length === 1 ? 'opportunity' : 'opportunities'} found
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchScholarships}
+                  className="text-xs"
+                >
+                  Refresh
+                </Button>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                {filteredScholarships.slice(0, 10).map((scholarship) => (
+                  <Card key={scholarship.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {OPPORTUNITY_TYPE_LABELS[scholarship.type] || scholarship.type}
+                        </Badge>
+                        {isUpcoming(scholarship.applicationDeadline) && (
+                          <Badge variant="default" className="text-xs bg-green-600">
+                            Open
+                          </Badge>
+                        )}
+                      </div>
+                      <CardTitle className="text-sm leading-tight">{scholarship.name}</CardTitle>
+                      <CardDescription className="flex items-center gap-1 text-xs mt-1">
+                        <GraduationCap className="h-3 w-3" />
+                        {scholarship.provider}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                        {scholarship.description}
+                      </p>
+                      <div className="space-y-1 mb-3">
+                        {scholarship.eligibility?.counties && (
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <MapPin className="h-3 w-3" />
+                            {scholarship.eligibility.counties.length === 1 
+                              ? scholarship.eligibility.counties[0]
+                              : `${scholarship.eligibility.counties.length} counties`
+                            }
+                          </div>
+                        )}
+                        {scholarship.applicationDeadline && (
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Calendar className="h-3 w-3" />
+                            {formatDeadline(scholarship.applicationDeadline)}
+                          </div>
+                        )}
+                        {scholarship.amount && (
+                          <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            {scholarship.amount}
+                          </div>
+                        )}
+                      </div>
+                      {scholarship.applicationLink && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-xs"
+                          asChild
+                        >
+                          <a
+                            href={scholarship.applicationLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2"
+                          >
+                            View Details
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
 
         {/* Quick Stats - LinkedIn Style - Fully Responsive */}

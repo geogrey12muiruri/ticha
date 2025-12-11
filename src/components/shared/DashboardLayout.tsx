@@ -20,11 +20,16 @@ import {
   MoreHorizontal,
   WifiOff,
   Menu,
-  X
+  X,
+  LogOut,
+  Settings
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/constants'
 import { isOnline } from '@/lib/offlineAuth'
+import { AuthService } from '@/services/auth.service'
+import { toast } from 'sonner'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -33,8 +38,28 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const online = isOnline()
+  const router = useRouter()
   const userName = user?.email?.split('@')[0] || 'Student'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      setUserMenuOpen(false)
+      setMobileMenuOpen(false)
+      await AuthService.signOut()
+      toast.success('Logged out successfully', {
+        description: 'You have been signed out.',
+      })
+      router.push(ROUTES.LOGIN)
+      router.refresh() // Refresh to clear any cached state
+    } catch (error: any) {
+      console.error('Logout error:', error)
+      toast.error('Logout failed', {
+        description: error.message || 'Failed to sign out. Please try again.',
+      })
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -49,7 +74,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-gradient-to-br from-[#e5989b] to-[#b5838d] flex items-center justify-center">
                     <span className="text-white font-bold text-xs sm:text-sm">J</span>
                   </div>
-                  <span className="font-bold text-base sm:text-lg hidden xs:block">Jifunze AI</span>
+                  <span className="font-bold text-base sm:text-lg hidden xs:block">EduPath</span>
                 </div>
               </Link>
               
@@ -99,10 +124,60 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 </Badge>
               </Button>
               
-              <Button variant="ghost" size="sm" className="flex-col h-14 w-14 xl:w-16 rounded-none px-1">
-                <User className="h-4 w-4 xl:h-5 xl:w-5" />
-                <span className="text-[10px] xl:text-xs mt-0.5">Me</span>
-              </Button>
+              {/* User Menu with Logout */}
+              <div className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex-col h-14 w-14 xl:w-16 rounded-none px-1"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                >
+                  <User className="h-4 w-4 xl:h-5 xl:w-5" />
+                  <span className="text-[10px] xl:text-xs mt-0.5">Me</span>
+                </Button>
+                {/* Dropdown Menu */}
+                {userMenuOpen && (
+                  <>
+                    {/* Backdrop to close menu */}
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                      <div className="py-1">
+                        <Link 
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            View Profile
+                          </div>
+                        </Link>
+                        <Link 
+                          href="#"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4" />
+                            Settings
+                          </div>
+                        </Link>
+                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               
               <Button variant="ghost" size="sm" className="flex-col h-14 w-14 xl:w-16 rounded-none px-1">
                 <MoreHorizontal className="h-4 w-4 xl:h-5 xl:w-5" />
@@ -173,10 +248,54 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                     7
                   </Badge>
                 </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-16 w-full rounded-md" onClick={() => setMobileMenuOpen(false)}>
-                  <User className="h-5 w-5 mb-1" />
-                  <span className="text-xs">Me</span>
-                </Button>
+                <div className="relative">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex-col h-16 w-full rounded-md"
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  >
+                    <User className="h-5 w-5 mb-1" />
+                    <span className="text-xs">Me</span>
+                  </Button>
+                  {userMenuOpen && (
+                    <div className="absolute bottom-full left-0 mb-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                      <div className="py-1">
+                        <Link 
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => {
+                            setUserMenuOpen(false)
+                            setMobileMenuOpen(false)
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            View Profile
+                          </div>
+                        </Link>
+                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Logout button in mobile menu */}
+              <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
               </div>
             </nav>
           </div>
@@ -227,10 +346,19 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                     <span className="text-muted-foreground">Profile views</span>
                     <span className="font-semibold">0</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-sm mb-3">
                     <span className="text-muted-foreground">Matches found</span>
                     <span className="font-semibold">0</span>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
                 </div>
               </div>
             </div>

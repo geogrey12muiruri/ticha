@@ -92,18 +92,49 @@ export class ScholarshipAPIService {
   }
 
   /**
-   * Match student profile to scholarships (using API data)
+   * Match student profile to scholarships (using API data + AI)
+   * Uses API route to ensure server-side execution (for environment variables)
    */
   static async matchScholarships(
     profile: ScholarshipProfile
   ): Promise<ScholarshipMatch[]> {
-    // Fetch scholarships from API
-    const scholarships = await this.fetchScholarships({
-      county: profile.county,
-      limit: 100, // Get more for better matching
-    })
+    try {
+      // Call API route (runs on server where env vars are available)
+      const response = await fetch('/api/ai/match', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ profile }),
+      })
 
-    // Use the existing matching logic
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Failed to match: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data.matches || []
+    } catch (error) {
+      console.error('Error in AI matching API call:', error)
+      
+      // Fallback: fetch scholarships and use rule-based matching
+      const scholarships = await this.fetchScholarships({
+        county: profile.county,
+        limit: 100,
+      })
+      
+      return this.ruleBasedMatch(profile, scholarships)
+    }
+  }
+
+  /**
+   * Rule-based matching (fallback)
+   */
+  private static ruleBasedMatch(
+    profile: ScholarshipProfile,
+    scholarships: Scholarship[]
+  ): ScholarshipMatch[] {
     const matches: ScholarshipMatch[] = []
 
     for (const scholarship of scholarships) {
@@ -126,6 +157,37 @@ export class ScholarshipAPIService {
 
     // Sort by match score (highest first)
     return matches.sort((a, b) => b.matchScore - a.matchScore)
+  }
+
+  /**
+   * Map ScholarshipProfile to StudentProfile format
+   */
+  private static mapToStudentProfile(profile: ScholarshipProfile): any {
+    return {
+      personal: {
+        county: profile.county,
+        constituency: profile.constituency,
+        schoolName: profile.currentSchool,
+      },
+      academicStage: {
+        stage: profile.curriculum === 'CBC' ? 'JuniorSecondary' : 'SeniorSecondary',
+        currentClassOrLevel: `Grade ${profile.grade || 8}`,
+      },
+      subjectsCompetencies: {
+        subjectsTaken: profile.subjects || [],
+        preferredStream: profile.preferredField,
+      },
+      careerGoals: {
+        longTerm: profile.careerInterest,
+        shortTerm: profile.learningGoals?.[0],
+      },
+      skillsAndCertifications: [
+        ...(profile.currentSkills || []).map(skill => ({ skill, proficiency: 'Intermediate' })),
+        ...(profile.skillsWanted || []).map(skill => ({ skill, proficiency: 'Beginner' })),
+      ],
+      projectsPortfolio: profile.projects || [],
+      extracurricularsAndAwards: profile.extracurriculars?.map(type => ({ type, years: '2024' })) || [],
+    }
   }
 
   /**
