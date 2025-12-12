@@ -238,14 +238,18 @@ export function MinimalProfileWizard({ onComplete, initialData }: MinimalProfile
                   id="firstName"
                   placeholder="John"
                   value={profile.personal?.firstName || ''}
-                   onChange={(e) => updateProfile({
-                     personal: { 
-                       firstName: e.target.value,
-                       lastName: profile.personal?.lastName || '',
-                       county: profile.personal?.county || '',
-                       ...profile.personal,
-                     } as any
-                   })}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setProfile(prev => ({
+                      ...prev,
+                      personal: {
+                        firstName: value,
+                        lastName: prev.personal?.lastName || '',
+                        county: prev.personal?.county || '',
+                        ...prev.personal,
+                      }
+                    }))
+                  }}
                 />
               </div>
 
@@ -255,14 +259,18 @@ export function MinimalProfileWizard({ onComplete, initialData }: MinimalProfile
                   id="lastName"
                   placeholder="Doe"
                   value={profile.personal?.lastName || ''}
-                  onChange={(e) => updateProfile({
-                    personal: { 
-                      firstName: profile.personal?.firstName || '',
-                      lastName: e.target.value,
-                      county: profile.personal?.county || '',
-                      ...profile.personal,
-                    } as any
-                  })}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setProfile(prev => ({
+                      ...prev,
+                      personal: {
+                        firstName: prev.personal?.firstName || '',
+                        lastName: value,
+                        county: prev.personal?.county || '',
+                        ...prev.personal,
+                      }
+                    }))
+                  }}
                 />
               </div>
             </div>
@@ -322,13 +330,17 @@ export function MinimalProfileWizard({ onComplete, initialData }: MinimalProfile
                   id="classLevel"
                   placeholder="e.g., Form 2, Grade 8, TVET Level 3, Year 1"
                   value={profile.academicStage?.currentClassOrLevel || ''}
-                   onChange={(e) => updateProfile({
-                     academicStage: { 
-                       stage: profile.academicStage?.stage || 'SeniorSecondary',
-                       currentClassOrLevel: e.target.value,
-                       ...profile.academicStage,
-                     } as any
-                   })}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setProfile(prev => ({
+                      ...prev,
+                      academicStage: {
+                        stage: prev.academicStage?.stage || 'SeniorSecondary',
+                        currentClassOrLevel: value,
+                        ...prev.academicStage,
+                      }
+                    }))
+                  }}
                 />
                 <p className="text-xs text-muted-foreground">
                   You can edit this if the default doesn't match your exact level
