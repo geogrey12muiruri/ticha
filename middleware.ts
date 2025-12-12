@@ -7,12 +7,13 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ROUTES } from '@/constants'
 
+// Explicitly type as string array to avoid literal type inference
 const publicRoutes: string[] = [
-  ROUTES.HOME,
-  ROUTES.LOGIN,
-  ROUTES.FORGOT_PASSWORD,
-  ROUTES.RESET_PASSWORD,
-  ROUTES.AUTH_CALLBACK,
+  String(ROUTES.HOME),
+  String(ROUTES.LOGIN),
+  String(ROUTES.FORGOT_PASSWORD),
+  String(ROUTES.RESET_PASSWORD),
+  String(ROUTES.AUTH_CALLBACK),
 ]
 
 export function middleware(request: NextRequest) {
