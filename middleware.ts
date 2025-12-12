@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ROUTES } from '@/constants'
 
-const publicRoutes = [
+const publicRoutes: string[] = [
   ROUTES.HOME,
   ROUTES.LOGIN,
   ROUTES.FORGOT_PASSWORD,

@@ -185,8 +185,8 @@ export function ScholarshipQuestionnaire({ onComplete }: QuestionnaireProps) {
             <div className="space-y-2">
               <Label>Family Income Level</Label>
               <RadioGroup
-                value={profile.familyIncome || ''}
-                onValueChange={(value) => updateProfile({ familyIncome: value as 'low' | 'medium' | 'high' })}
+                 value={(profile as any).familyIncome || ''}
+                 onValueChange={(value) => updateProfile({ familyIncome: value as 'low' | 'medium' | 'high' } as any)}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="low" id="low" />
@@ -216,24 +216,24 @@ export function ScholarshipQuestionnaire({ onComplete }: QuestionnaireProps) {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="orphan"
-                  checked={profile.orphanStatus || false}
-                  onCheckedChange={(checked) => updateProfile({ orphanStatus: checked as boolean })}
+                   checked={(profile as any).orphanStatus || false}
+                   onCheckedChange={(checked) => updateProfile({ orphanStatus: checked as boolean } as any)}
                 />
                 <Label htmlFor="orphan">Orphan (Lost one or both parents)</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="single-parent"
-                  checked={profile.singleParent || false}
-                  onCheckedChange={(checked) => updateProfile({ singleParent: checked as boolean })}
+                  checked={(profile as any).singleParent || false}
+                  onCheckedChange={(checked) => updateProfile({ singleParent: checked as boolean } as any)}
                 />
                 <Label htmlFor="single-parent">Single Parent Household</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="disability"
-                  checked={profile.disability || false}
-                  onCheckedChange={(checked) => updateProfile({ disability: checked as boolean })}
+                  checked={(profile as any).disability || false}
+                  onCheckedChange={(checked) => updateProfile({ disability: checked as boolean } as any)}
                 />
                 <Label htmlFor="disability">Living with Disability</Label>
               </div>
@@ -289,10 +289,10 @@ export function ScholarshipQuestionnaire({ onComplete }: QuestionnaireProps) {
                   <span><strong>Grade:</strong> {profile.grade}</span>
                 </div>
               )}
-              {profile.familyIncome && (
+              {(profile as any).familyIncome && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <span><strong>Income Level:</strong> {profile.familyIncome}</span>
+                  <span><strong>Income Level:</strong> {(profile as any).familyIncome}</span>
                 </div>
               )}
             </div>

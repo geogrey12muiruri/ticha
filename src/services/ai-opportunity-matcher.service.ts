@@ -58,13 +58,17 @@ export class AIOpportunityMatcherService {
     )
 
     // Extract successful enhancements, fallback to original match if AI fails
-    const aiEnhanced = aiEnhancedResults.map((result, index) => {
+    const aiEnhanced: AIMatchResult[] = aiEnhancedResults.map((result, index) => {
       if (result.status === 'fulfilled') {
         return result.value
       } else {
         console.warn(`AI enhancement failed for match ${index}:`, result.reason)
-        // Return original match without AI enhancement
-        return topMatches[index]
+        // Return original match with default AI fields
+        return {
+          ...topMatches[index],
+          aiExplanation: 'Match based on eligibility criteria and profile alignment.',
+          aiRecommendation: 'moderate' as const,
+        }
       }
     })
 

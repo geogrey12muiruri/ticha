@@ -99,7 +99,8 @@ export class OptimizedScholarshipScraperService {
       stats,
     }
 
-    this.setCache(cacheKey, result)
+    // Cache the combined results array, not the full result object
+    this.setCache(cacheKey, limited)
     return result
   }
 
@@ -210,9 +211,9 @@ export class OptimizedScholarshipScraperService {
       }
 
       // Normalize country names
-      if (scholarship.eligibility?.countries) {
-        scholarship.eligibility.countries = scholarship.eligibility.countries.map(
-          (c) => this.normalizeCountry(c)
+      if ((scholarship.eligibility as any)?.countries) {
+        (scholarship.eligibility as any).countries = (scholarship.eligibility as any).countries.map(
+          (c: string) => this.normalizeCountry(c)
         )
       }
 
@@ -257,8 +258,8 @@ export class OptimizedScholarshipScraperService {
   private enhanceDescription(scholarship: Partial<Scholarship>): string {
     const parts: string[] = []
 
-    if (scholarship.eligibility?.countries?.length) {
-      parts.push(`Scholarship opportunity in ${scholarship.eligibility.countries.join(', ')}`)
+    if ((scholarship.eligibility as any)?.countries?.length) {
+      parts.push(`Scholarship opportunity in ${(scholarship.eligibility as any).countries.join(', ')}`)
     }
 
     if (scholarship.duration) {
@@ -305,8 +306,8 @@ export class OptimizedScholarshipScraperService {
   ): Partial<Scholarship>[] {
     return scholarships.filter((scholarship) => {
       // If it has countries and they're all non-Kenyan, filter out
-      if (scholarship.eligibility?.countries?.length) {
-        const countries = scholarship.eligibility.countries.map((c) =>
+      if ((scholarship.eligibility as any)?.countries?.length) {
+        const countries = (scholarship.eligibility as any).countries.map((c: string) =>
           c.toLowerCase()
         )
         // Keep if it includes Kenya or if it's for all countries
@@ -319,7 +320,7 @@ export class OptimizedScholarshipScraperService {
         }
         // Filter out if it's only international countries
         const internationalOnly = countries.every(
-          (c) =>
+          (c: string) =>
             !['kenya', 'all', ''].includes(c) &&
             !c.includes('kenya')
         )

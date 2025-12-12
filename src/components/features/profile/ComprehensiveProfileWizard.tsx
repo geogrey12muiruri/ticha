@@ -88,7 +88,34 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
   const [extracurricularDetails, setExtracurricularDetails] = useState('')
 
   const updateProfile = (updates: Partial<StudentProfile>) => {
-    setProfile(prev => ({ ...prev, ...updates }))
+    setProfile(prev => {
+      const newProfile = { ...prev, ...updates }
+      // Ensure personal info has required fields
+      if (newProfile.personal) {
+        newProfile.personal = {
+          ...newProfile.personal,
+          firstName: newProfile.personal.firstName || '',
+          lastName: newProfile.personal.lastName || '',
+          county: newProfile.personal.county || '',
+        }
+      }
+      // Ensure academicStage has required fields
+      if (newProfile.academicStage) {
+        newProfile.academicStage = {
+          ...newProfile.academicStage,
+          stage: newProfile.academicStage.stage || 'Primary',
+          currentClassOrLevel: newProfile.academicStage.currentClassOrLevel || '',
+        }
+      }
+      // Ensure subjectsCompetencies has required fields
+      if (newProfile.subjectsCompetencies) {
+        newProfile.subjectsCompetencies = {
+          ...newProfile.subjectsCompetencies,
+          subjectsTaken: newProfile.subjectsCompetencies.subjectsTaken || [],
+        }
+      }
+      return newProfile
+    })
   }
 
   const handleNext = () => {
@@ -242,7 +269,12 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                       id="firstName"
                       value={profile.personal?.firstName || ''}
                       onChange={(e) => updateProfile({
-                        personal: { ...profile.personal, firstName: e.target.value }
+                        personal: { 
+                          firstName: e.target.value,
+                          lastName: profile.personal?.lastName || '',
+                          county: profile.personal?.county || '',
+                          ...profile.personal,
+                        } as any
                       })}
                       placeholder="John"
                     />
@@ -253,7 +285,12 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                       id="lastName"
                       value={profile.personal?.lastName || ''}
                       onChange={(e) => updateProfile({
-                        personal: { ...profile.personal, lastName: e.target.value }
+                        personal: { 
+                          firstName: profile.personal?.firstName || '',
+                          lastName: e.target.value,
+                          county: profile.personal?.county || '',
+                          ...profile.personal,
+                        } as any
                       })}
                       placeholder="Doe"
                     />
@@ -265,9 +302,15 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                   <Input
                     id="schoolName"
                     value={profile.personal?.schoolName || ''}
-                    onChange={(e) => updateProfile({
-                      personal: { ...profile.personal, schoolName: e.target.value }
-                    })}
+                     onChange={(e) => updateProfile({
+                       personal: { 
+                         firstName: profile.personal?.firstName || '',
+                         lastName: profile.personal?.lastName || '',
+                         county: profile.personal?.county || '',
+                         ...profile.personal, 
+                         schoolName: e.target.value 
+                       }
+                     })}
                     placeholder="Nairobi High School"
                   />
                 </div>
@@ -277,7 +320,12 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                   <Select
                     value={profile.personal?.county || ''}
                     onValueChange={(value) => updateProfile({
-                      personal: { ...profile.personal, county: value }
+                      personal: { 
+                        firstName: profile.personal?.firstName || '',
+                        lastName: profile.personal?.lastName || '',
+                        county: value,
+                        ...profile.personal,
+                      }
                     })}
                   >
                     <SelectTrigger>
@@ -312,12 +360,13 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                   <Label htmlFor="stage">Education Stage *</Label>
                   <Select
                     value={profile.academicStage?.stage || ''}
-                    onValueChange={(value) => updateProfile({
-                      academicStage: {
-                        ...profile.academicStage,
-                        stage: value as any
-                      }
-                    })}
+                     onValueChange={(value) => updateProfile({
+                       academicStage: {
+                         stage: value as any,
+                         currentClassOrLevel: profile.academicStage?.currentClassOrLevel || '',
+                         ...profile.academicStage,
+                       }
+                     })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select stage" />
@@ -337,12 +386,13 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                   <Input
                     id="classLevel"
                     value={profile.academicStage?.currentClassOrLevel || ''}
-                    onChange={(e) => updateProfile({
-                      academicStage: {
-                        ...profile.academicStage,
-                        currentClassOrLevel: e.target.value
-                      }
-                    })}
+                     onChange={(e) => updateProfile({
+                       academicStage: {
+                         stage: profile.academicStage?.stage || 'Primary',
+                         currentClassOrLevel: e.target.value,
+                         ...profile.academicStage,
+                       }
+                     })}
                     placeholder="e.g., Grade 6, Form 3, TVET Level 4"
                   />
                 </div>
@@ -389,12 +439,13 @@ export function ComprehensiveProfileWizard({ onComplete, initialData }: Comprehe
                   <Label htmlFor="stream">Preferred Stream</Label>
                   <Select
                     value={profile.subjectsCompetencies?.preferredStream || ''}
-                    onValueChange={(value) => updateProfile({
-                      subjectsCompetencies: {
-                        ...profile.subjectsCompetencies,
-                        preferredStream: value as any
-                      }
-                    })}
+                     onValueChange={(value) => updateProfile({
+                       subjectsCompetencies: {
+                         subjectsTaken: profile.subjectsCompetencies?.subjectsTaken || [],
+                         preferredStream: value as any,
+                         ...profile.subjectsCompetencies,
+                       }
+                     })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select stream (optional)" />

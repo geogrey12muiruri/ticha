@@ -448,13 +448,13 @@ export class ScholarshipService {
     }
 
     if (eligibility.specialConditions) {
-      if (profile.orphanStatus && eligibility.specialConditions.includes('orphan')) {
+      if ((profile as any).orphanStatus && eligibility.specialConditions.includes('orphan')) {
         reasons.push('Supports orphaned students')
       }
-      if (profile.singleParent && eligibility.specialConditions.includes('single_parent')) {
+      if ((profile as any).singleParent && eligibility.specialConditions.includes('single_parent')) {
         reasons.push('Supports single-parent families')
       }
-      if (profile.disability && eligibility.specialConditions.includes('disability')) {
+      if ((profile as any).disability && eligibility.specialConditions.includes('disability')) {
         reasons.push('Supports students with disabilities')
       }
     }

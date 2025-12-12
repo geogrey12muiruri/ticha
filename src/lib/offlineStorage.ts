@@ -72,7 +72,7 @@ export async function saveMessage(message: any): Promise<void> {
       request.onerror = () => reject(request.error)
     })
     
-    await tx.done
+    // Transaction completes automatically when all operations finish
   } catch (error) {
     console.error('Failed to save message offline:', error)
   }
@@ -95,7 +95,7 @@ export async function getMessages(): Promise<any[]> {
       request.onerror = () => reject(request.error)
     })
     
-    await tx.done
+    // Transaction completes automatically when all operations finish
 
     // Ensure messages is an array before mapping
     if (!Array.isArray(messages)) {
@@ -129,7 +129,7 @@ export async function saveUserPrefs(key: string, value: any): Promise<void> {
       request.onerror = () => reject(request.error)
     })
     
-    await tx.done
+    // Transaction completes automatically when all operations finish
   } catch (error) {
     console.error('Failed to save user prefs:', error)
   }
@@ -151,7 +151,7 @@ export async function getUserPrefs(key: string): Promise<any | null> {
       request.onerror = () => reject(request.error)
     })
     
-    await tx.done
+    // Transaction completes automatically when all operations finish
     return result?.value || null
   } catch (error) {
     console.error('Failed to get user prefs:', error)

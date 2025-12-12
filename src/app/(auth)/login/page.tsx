@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Chrome, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function LoginPage() {
+function LoginContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const searchParams = useSearchParams()
@@ -89,6 +89,23 @@ export default function LoginPage() {
         </div>
       </div>
     </AuthLayout>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <AuthLayout
+        title="Welcome Back!"
+        description="Sign in to continue your learning journey"
+      >
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </AuthLayout>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
 

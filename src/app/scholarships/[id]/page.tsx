@@ -380,19 +380,19 @@ export default function ScholarshipDetailPage() {
               <div className="mb-6">
                 <h3 className="font-semibold mb-3">Contact Information</h3>
                 <div className="space-y-2 text-sm">
-                  {scholarship.contactInfo.source && (
-                    <p><strong>Source:</strong> {scholarship.contactInfo.source}</p>
+                  {(scholarship.contactInfo as any)?.source && (
+                    <p><strong>Source:</strong> {(scholarship.contactInfo as any).source}</p>
                   )}
-                  {scholarship.contactInfo.website && (
+                  {(scholarship.contactInfo as any)?.website && (
                     <p>
                       <strong>Website:</strong>{' '}
                       <a 
-                        href={scholarship.contactInfo.website} 
+                        href={(scholarship.contactInfo as any).website} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline flex items-center gap-1"
                       >
-                        {scholarship.contactInfo.website}
+                        {(scholarship.contactInfo as any).website}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </p>

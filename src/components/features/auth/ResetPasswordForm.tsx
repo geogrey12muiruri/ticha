@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
@@ -15,7 +15,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ROUTES } from '@/constants'
 
-export function ResetPasswordForm() {
+function ResetPasswordFormContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -223,6 +223,18 @@ export function ResetPasswordForm() {
         </Button>
       </Link>
     </form>
+  )
+}
+
+export function ResetPasswordForm() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <ResetPasswordFormContent />
+    </Suspense>
   )
 }
 

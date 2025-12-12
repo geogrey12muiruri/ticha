@@ -160,7 +160,8 @@ export async function GET(request: NextRequest) {
           s.name?.toLowerCase().includes(queryLower) ||
           s.provider?.toLowerCase().includes(queryLower) ||
           s.description?.toLowerCase().includes(queryLower) ||
-          s.eligibility?.countries?.some((c) =>
+          // Check counties instead of countries (eligibility type uses counties)
+          s.eligibility?.counties?.some((c) =>
             c.toLowerCase().includes(queryLower)
           )
       )

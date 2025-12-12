@@ -238,9 +238,14 @@ export function MinimalProfileWizard({ onComplete, initialData }: MinimalProfile
                   id="firstName"
                   placeholder="John"
                   value={profile.personal?.firstName || ''}
-                  onChange={(e) => updateProfile({
-                    personal: { ...profile.personal, firstName: e.target.value }
-                  })}
+                   onChange={(e) => updateProfile({
+                     personal: { 
+                       firstName: e.target.value,
+                       lastName: profile.personal?.lastName || '',
+                       county: profile.personal?.county || '',
+                       ...profile.personal,
+                     } as any
+                   })}
                 />
               </div>
 
@@ -251,7 +256,12 @@ export function MinimalProfileWizard({ onComplete, initialData }: MinimalProfile
                   placeholder="Doe"
                   value={profile.personal?.lastName || ''}
                   onChange={(e) => updateProfile({
-                    personal: { ...profile.personal, lastName: e.target.value }
+                    personal: { 
+                      firstName: profile.personal?.firstName || '',
+                      lastName: e.target.value,
+                      county: profile.personal?.county || '',
+                      ...profile.personal,
+                    } as any
                   })}
                 />
               </div>
@@ -312,9 +322,13 @@ export function MinimalProfileWizard({ onComplete, initialData }: MinimalProfile
                   id="classLevel"
                   placeholder="e.g., Form 2, Grade 8, TVET Level 3, Year 1"
                   value={profile.academicStage?.currentClassOrLevel || ''}
-                  onChange={(e) => updateProfile({
-                    academicStage: { ...profile.academicStage, currentClassOrLevel: e.target.value }
-                  })}
+                   onChange={(e) => updateProfile({
+                     academicStage: { 
+                       stage: profile.academicStage?.stage || 'SeniorSecondary',
+                       currentClassOrLevel: e.target.value,
+                       ...profile.academicStage,
+                     } as any
+                   })}
                 />
                 <p className="text-xs text-muted-foreground">
                   You can edit this if the default doesn't match your exact level

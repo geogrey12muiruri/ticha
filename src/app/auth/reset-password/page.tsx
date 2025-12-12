@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react'
  * Supabase sends links to /auth/reset-password, but our page is at /reset-password
  * This page redirects to the correct route while preserving the hash fragment
  */
-export default function AuthResetPasswordRedirect() {
+function AuthResetPasswordRedirectContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -40,6 +40,21 @@ export default function AuthResetPasswordRedirect() {
         <p className="text-muted-foreground">Redirecting to reset password...</p>
       </div>
     </div>
+  )
+}
+
+export default function AuthResetPasswordRedirect() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#ffcdb2] via-[#ffb4a2] to-[#e5989b] dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AuthResetPasswordRedirectContent />
+    </Suspense>
   )
 }
 

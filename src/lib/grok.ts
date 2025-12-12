@@ -1,12 +1,12 @@
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 import { tutorSystemPrompt } from '@/prompts/tutor-prompt'
 
 // Configure OpenAI SDK to work with Groq API
 // Groq uses OpenAI-compatible API, so we can use the OpenAI SDK
-const groqClient = openai({
+const groqClient = createOpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
-  apiKey: process.env.GROK_API_KEY || process.env.GROQ_API_KEY,
+  apiKey: process.env.GROK_API_KEY || process.env.GROQ_API_KEY || '',
 })
 
 export async function generateTutorResponse(
@@ -41,7 +41,7 @@ Provide a helpful, culturally relevant response in ${language}:`
       prompt: enhancedPrompt,
       temperature: 0.7,
       maxTokens: 1000,
-    })
+    } as any)
 
     return text
   } catch (error) {

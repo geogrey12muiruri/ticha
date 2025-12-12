@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AIOpportunityMatcherService } from '@/services/ai-opportunity-matcher.service'
 import { ScholarshipAPIService } from '@/services/scholarship-api.service'
-import type { ScholarshipProfile } from '@/types/scholarship'
+import type { ScholarshipProfile, Scholarship } from '@/types/scholarship'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         scholarships = liveScholarships
         
         // Sync to database in background (don't wait)
-        scraper.syncToDatabase().catch(err => {
+        scraper.syncToDatabase().catch((err: any) => {
           console.error('Error syncing to database:', err)
         })
       } else {

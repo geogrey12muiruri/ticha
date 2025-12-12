@@ -63,7 +63,7 @@ export class KenyaScholarshipScraperService {
       const enhanced: Partial<Scholarship>[] = rawScholarships.map((raw) => ({
         ...raw,
         source: 'ministry_of_education',
-      }))
+      } as any))
 
       // Optionally enhance with AI (commented out to avoid API calls during testing)
       /*
@@ -115,7 +115,7 @@ export class KenyaScholarshipScraperService {
         contactInfo: {
           source: 'Equity Bank Foundation',
           website: 'https://equitybank.co.ke',
-        },
+        } as any,
       },
       {
         name: 'NG-CDF Bursary',
@@ -128,7 +128,7 @@ export class KenyaScholarshipScraperService {
         applicationDeadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
         contactInfo: {
           source: 'NG-CDF',
-        },
+        } as any,
       },
     ]
   }
@@ -156,7 +156,7 @@ export class KenyaScholarshipScraperService {
             ...raw,
             ...extracted.scholarship,
             source: 'ngcdf',
-          })
+          } as any)
         } catch (error) {
           enhanced.push(raw)
         }
@@ -187,7 +187,7 @@ export class KenyaScholarshipScraperService {
             ...raw,
             ...extracted.scholarship,
             source: `county_${county.toLowerCase()}`,
-          })
+          } as any)
         } catch (error) {
           enhanced.push(raw)
         }

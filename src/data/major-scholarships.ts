@@ -244,7 +244,7 @@ export function convertScholarshipSourceToScholarship(source: ScholarshipSource)
     contactInfo: {
       source: source.provider,
       website: source.links[0]?.url,
-    },
+    } as any,
     notes: source.notes,
     requirements: source.links.map(link => `${link.label}: ${link.url}`),
   }
@@ -268,7 +268,7 @@ export function convertMOOCToScholarship(platform: MOOCPlatform): Partial<Schola
     contactInfo: {
       source: platform.provider,
       website: platform.url,
-    },
+    } as any,
     notes: platform.notes,
     requirements: [`Focus Areas: ${platform.focusAreas.join(', ')}`],
   }

@@ -140,7 +140,6 @@ export const SCHOLARSHIPS: Scholarship[] = [
     eligibility: {
       minKCSE: 'B+',
       fieldOfStudy: ['Science', 'Technology', 'Engineering', 'Mathematics'],
-      averageGrade: 'A',
     },
     amount: 'KES 100,000 per year',
     coverage: ['tuition', 'books'],

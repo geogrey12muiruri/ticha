@@ -219,6 +219,7 @@ export const SEED_SCHOLARSHIPS: SeedScholarship[] = [
     provider: 'Moringa School',
     type: 'bootcamp',
     category: 'Tech',
+    eligibility: {},
     bootcampDetails: {
       duration: '5 months',
       format: 'hybrid',
@@ -241,6 +242,7 @@ export const SEED_SCHOLARSHIPS: SeedScholarship[] = [
     provider: 'Andela',
     type: 'bootcamp',
     category: 'Tech',
+    eligibility: {},
     bootcampDetails: {
       duration: '6 months',
       format: 'online',
@@ -260,6 +262,7 @@ export const SEED_SCHOLARSHIPS: SeedScholarship[] = [
     provider: 'Coursera',
     type: 'learning',
     category: 'Professional Development',
+    eligibility: {},
     learningDetails: {
       format: 'online',
       cost: 'free-audit',
@@ -280,6 +283,7 @@ export const SEED_SCHOLARSHIPS: SeedScholarship[] = [
     provider: 'edX',
     type: 'learning',
     category: 'Academic',
+    eligibility: {},
     learningDetails: {
       format: 'online',
       cost: 'free-audit',
@@ -298,6 +302,7 @@ export const SEED_SCHOLARSHIPS: SeedScholarship[] = [
     provider: 'Khan Academy',
     type: 'learning',
     category: 'Academic',
+    eligibility: {},
     learningDetails: {
       format: 'online',
       cost: 'free',
